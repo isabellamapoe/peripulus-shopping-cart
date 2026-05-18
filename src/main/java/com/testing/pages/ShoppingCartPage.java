@@ -1,82 +1,70 @@
 package com.testing.pages;
 
 import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
-import java.util.List;
 
 public class ShoppingCartPage {
 
     private WebDriver driver;
     private WebDriverWait wait;
+    private Actions actions;
 
-    private By preloader = By.className("preloader");
-    private By shoppingCartIcon = By.id("show-your-cart");
-    private By notificationModal = By.id("Notification-Modal");
+    private By shoppingCartIcon =
+            By.id("show-your-cart");
+
     private By successPopupText =
             By.xpath("//*[contains(text(),'Success add to cart')]");
 
+    private By firstCartProduct =
+            By.xpath("(//table//a)[1]");
+
+    private By preloader =
+            By.className("preloader");
+
     public ShoppingCartPage(WebDriver driver) {
         this.driver = driver;
-        this.wait = new WebDriverWait(driver, Duration.ofSeconds(25));
+        this.wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+        this.actions = new Actions(driver);
     }
 
-    private void waitForLoading() {
+    private void waitForPageReady() {
         try {
             wait.until(ExpectedConditions.invisibilityOfElementLocated(preloader));
-        } catch (Exception ignored) {}
-
-        try {
-            wait.until(ExpectedConditions.invisibilityOfElementLocated(notificationModal));
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 
     public void goToShoppingCartPage() {
-        waitForLoading();
+        waitForPageReady();
 
         WebElement cartIcon = wait.until(
-                ExpectedConditions.elementToBeClickable(shoppingCartIcon)
+                ExpectedConditions.visibilityOfElementLocated(shoppingCartIcon)
         );
-        cartIcon.click();
 
-        wait.until(webDriver ->
-                ((JavascriptExecutor) webDriver)
-                        .executeScript("return document.readyState")
-                        .equals("complete")
-        );
+        wait.until(ExpectedConditions.elementToBeClickable(cartIcon));
+
+        actions.moveToElement(cartIcon)
+                .pause(Duration.ofMillis(300))
+                .click()
+                .perform();
     }
 
-    public boolean isBookExist(String name) {
+    public boolean isFirstProductDisplayed() {
+        waitForPageReady();
 
-        wait.until(driver ->
-                ((JavascriptExecutor) driver)
-                        .executeScript("return document.readyState")
-                        .equals("complete")
+        WebElement product = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(firstCartProduct)
         );
 
-        By bookLocator = By.xpath(
-                "//table//a[contains(normalize-space(.),'" + name + "')]"
-        );
-
-        for (int i = 0; i < 10; i++) { // retry lebih panjang
-            List<WebElement> items = driver.findElements(bookLocator);
-
-            if (items.size() > 0 && items.get(0).isDisplayed()) {
-                return true;
-            }
-
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException ignored) {}
-        }
-
-        return false;
+        return product.isDisplayed();
     }
+
     public String getConfirmationMessage() {
         return wait.until(
                 ExpectedConditions.visibilityOfElementLocated(successPopupText)
