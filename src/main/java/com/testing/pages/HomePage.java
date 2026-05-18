@@ -1,5 +1,5 @@
 package com.testing.pages;
-
+import com.testing.config.ConfigReader;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 
@@ -11,8 +11,12 @@ public class HomePage {
         this.driver = driver;
     }
 
+    public void openBaseUrl() {
+        driver.get(ConfigReader.getBaseUrl());
+    }
+
     public void goToLoginPage() {
-        driver.get("https://www.periplus.com/account/Login");
+        driver.get(ConfigReader.getBaseUrl() + "/account/Login");
     }
 
     public void searchProduct(String productName) {

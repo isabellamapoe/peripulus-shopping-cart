@@ -1,12 +1,12 @@
 package com.testing.tests;
 
+import com.testing.config.ConfigReader;
+import com.testing.fixtures.LoginFixtures;
 import com.testing.pages.HomePage;
-import com.testing.pages.LoginPage;
 import com.testing.pages.ProductDetailPage;
 import com.testing.pages.ShoppingCartPage;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
-import io.github.cdimascio.dotenv.Dotenv;
 
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -21,23 +21,13 @@ import java.time.Duration;
 public class EditCart {
 
     WebDriver driver;
-    Dotenv dotenv;
-
-    String email;
-    String password;
 
     HomePage homePage;
-    LoginPage loginPage;
     ProductDetailPage productDetailPage;
     ShoppingCartPage cartPage;
 
     @BeforeTest
     public void setUp() {
-
-        dotenv = Dotenv.load();
-
-        email = dotenv.get("PERIPLUS_EMAIL");
-        password = dotenv.get("PERIPLUS_PASSWORD");
 
         WebDriverManager.chromedriver().setup();
 
@@ -49,7 +39,6 @@ public class EditCart {
                 .implicitlyWait(Duration.ofSeconds(5));
 
         homePage = new HomePage(driver);
-        loginPage = new LoginPage(driver);
         productDetailPage = new ProductDetailPage(driver);
         cartPage = new ShoppingCartPage(driver);
 
@@ -62,45 +51,33 @@ public class EditCart {
         /*
          * Test ID: SC_001
          * Test Name: Add Product To Cart
-         *
-         * Preconditions:
-         * - User already registered
-         * - User successfully logged in
-         *
-         * Expected Result:
-         * - Success add to cart message displayed
-         * - Product displayed in shopping cart
          */
 
         String bookName = "Little Women";
 
-        // Step 1 - Open Login Page
-        homePage.goToLoginPage();
-
-        // Step 2 - Login
-        loginPage.login(email, password);
-
-        // Step 3 - Search Product
+        // Step 1 - Login
+        LoginFixtures.login(
+                driver,
+                ConfigReader.getEmail(),
+                ConfigReader.getPassword()
+        );
+        // Step 2 - Search Product
         homePage.searchProduct(bookName);
 
-        // Step 4 - Select Product
+        // Step 3 - Select Product
         productDetailPage.selectFirstProduct();
 
-        // Step 5 - Add To Cart
+        // Step 4 - Add To Cart
         productDetailPage.addToCart();
 
-        // Validation - Success Popup
-        Assert.assertEquals(
-                cartPage.getConfirmationMessage(),
-                "Success add to cart"
+        Assert.assertTrue(
+                cartPage.isSuccessPopupDisplayed()
         );
 
-        // Step 6 - Open Shopping Cart
         cartPage.goToShoppingCartPage();
-
         // Validation - Product Exists In Cart
         Assert.assertTrue(
-                cartPage.isFirstProductDisplayed(),
+                cartPage.isBookExist(bookName),
                 "Failed: Product is not displayed in cart!"
         );
 

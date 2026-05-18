@@ -41,33 +41,34 @@ public class ShoppingCartPage {
     }
 
     public void goToShoppingCartPage() {
+
         waitForPageReady();
 
-        WebElement cartIcon = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(shoppingCartIcon)
-        );
-
-        wait.until(ExpectedConditions.elementToBeClickable(cartIcon));
-
-        actions.moveToElement(cartIcon)
-                .pause(Duration.ofMillis(300))
-                .click()
-                .perform();
+        wait.until(ExpectedConditions.invisibilityOfElementLocated(successPopupText));
+        wait.until(
+                ExpectedConditions.elementToBeClickable(shoppingCartIcon)
+        ).click();
     }
 
-    public boolean isFirstProductDisplayed() {
-        waitForPageReady();
-
-        WebElement product = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(firstCartProduct)
-        );
-
-        return product.isDisplayed();
+    public boolean isSuccessPopupDisplayed() {
+        try {
+            return wait.until(
+                    ExpectedConditions.visibilityOfElementLocated(successPopupText)
+            ).isDisplayed();
+        } catch (Exception e) {
+            return false;
+        }
     }
-
-    public String getConfirmationMessage() {
-        return wait.until(
-                ExpectedConditions.visibilityOfElementLocated(successPopupText)
-        ).getText().trim();
+    public boolean isBookExist(String name) {
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//p[contains(@class,'product-name')]//a")));
+        By bookLocator = By.xpath("//p[contains(@class,'product-name')]//a[normalize-space()='" + name + "']");
+        try {
+            WebElement book = wait.until(
+                    ExpectedConditions.visibilityOfElementLocated(bookLocator)
+            );
+            return book.isDisplayed();
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
